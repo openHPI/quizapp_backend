@@ -1,6 +1,6 @@
 # Backend
 
-Right now the backend server is based on the EventMachine ruby websocket implementation and can simply be run via 
+Right now the backend server is based on the EventMachine ruby websocket implementation and can simply be run via
 
 ## Installation
 
@@ -10,5 +10,4 @@ Right now the backend server is based on the EventMachine ruby websocket impleme
 
 ## Running
 
-* bundle exec ruby app/websocket-server.rb
-
+* bundle exec ruby websocket-server.rb
