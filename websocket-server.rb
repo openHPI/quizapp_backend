@@ -21,6 +21,7 @@ class QuizServer
   attr_accessor :clients
 
   def initialize
+    puts 'starting on port' + ARGV[1]
     @clients = {}
     @quiz_participants = {}
     @tv_clients = {}
@@ -81,7 +82,7 @@ class QuizServer
     msg = JSON.parse(msg)
     client = @clients[ws]
 
-    # New User 
+    # New User
     if (msg.has_key?("new_user"))
       client.name = assign_name(msg['new_user'])
       if (client.name == 'TV')
@@ -109,7 +110,7 @@ class QuizServer
         disconnected_client: client.name,
       })
 
-    # New Quiz Participant 
+    # New Quiz Participant
     elsif (msg.has_key?("new_quiz_participant"))
       quiz_id = msg["new_quiz_participant"]["quiz_id"].to_i
       @quiz_participants[quiz_id] = [] if @quiz_participants[quiz_id].nil?
@@ -122,7 +123,7 @@ class QuizServer
         }
       })
 
-    # Start Quiz 
+    # Start Quiz
     elsif (msg.has_key?("start_quiz"))
       quiz_id = msg["start_quiz"].to_i
       reset_quiz(quiz_id)
@@ -222,7 +223,7 @@ class QuizServer
   def reset_quiz(quiz_id)
     @question_answers = {}
     @quiz_participants[quiz_id].each do |client|
-      client.points = 0 
+      client.points = 0
     end
   end
 
@@ -250,4 +251,4 @@ class QuizServer
 end
 
 quizserver = QuizServer.new
-quizserver.start(host: "127.0.0.1", port: 8080)
+quizserver.start(host: "127.0.0.1", port: ARGV[1])
