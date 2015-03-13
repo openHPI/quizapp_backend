@@ -99,6 +99,16 @@ class QuizServer
           all_participants: build_all_participants_hash
         })
       end
+
+    # User Logout
+    elsif (msg.has_key?("user_logout"))
+      @quiz_participants.each do |_, participants|
+        participants.delete(client)
+      end
+      ws.send JSON.generate({
+        disconnected_client: client.name,
+      })
+
     # New Quiz Participant 
     elsif (msg.has_key?("new_quiz_participant"))
       quiz_id = msg["new_quiz_participant"]["quiz_id"].to_i
@@ -115,6 +125,7 @@ class QuizServer
     # Start Quiz 
     elsif (msg.has_key?("start_quiz"))
       quiz_id = msg["start_quiz"].to_i
+      reset_quiz(quiz_id)
 
       send_all_quiz_participants quiz_id, JSON.generate({
         start_quiz: quiz_id
@@ -162,6 +173,7 @@ class QuizServer
           participants: build_participants_hash(quiz_id),
         })
         reset_quiz(quiz_id)
+        @quiz_participants[quiz_id] = []
       end
     end
   end
@@ -212,7 +224,6 @@ class QuizServer
     @quiz_participants[quiz_id].each do |client|
       client.points = 0 
     end
-    @quiz_participants[quiz_id] = []
   end
 
   def client_names
