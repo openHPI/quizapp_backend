@@ -107,7 +107,7 @@ class QuizServer
       @quiz_participants.each do |_, participants|
         participants.delete(client)
       end
-      ws.send JSON.generate({
+      send_all JSON.generate({
         disconnected_client: client.name,
       })
 
@@ -119,6 +119,20 @@ class QuizServer
 
       send_all JSON.generate({
         new_quiz_participant: {
+          user_name: client.name,
+          quiz_id: quiz_id,
+        }
+      })
+
+    # User Logout
+    elsif (msg.has_key?("quiz_participant_quit"))
+      quiz_id = msg["quiz_participant_quit"]["quiz_id"].to_i
+      @quiz_participants.each do |_, participants|
+        participants.delete(client)
+      end
+
+      send_all JSON.generate({
+        quiz_participant_quit: {
           user_name: client.name,
           quiz_id: quiz_id,
         }
