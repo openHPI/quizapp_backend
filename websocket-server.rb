@@ -161,6 +161,10 @@ class QuizServer
       quiz_id = msg["quiz_id"].to_i
       client.tta[question_id] = Time.now.to_i - client.tta[question_id]
 
+      send_all_quiz_participants quiz_id, JSON.generate({
+        user_answered: client.name,
+      })
+
       if (all_participants_ready(quiz_id))
         send_all_quiz_participants quiz_id, JSON.generate({
           finish_question:  question_id,
