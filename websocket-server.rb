@@ -159,7 +159,11 @@ class QuizServer
       question_id = msg["question_answered"].to_i
       handle_client_answer(client, question_id, msg["answer_id"], msg["correct_answer"])
       quiz_id = msg["quiz_id"].to_i
-      client.tta[question_id] = Time.now.to_i - client.tta[question_id]
+      unless (client.tta[question_id].nil?) 
+        client.tta[question_id] = Time.now.to_i - client.tta[question_id]
+      else
+        client.tta[question_id] = 15
+      end
 
       send_all_quiz_participants quiz_id, JSON.generate({
         user_answered: client.name,
