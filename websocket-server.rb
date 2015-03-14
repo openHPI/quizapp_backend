@@ -124,7 +124,7 @@ class QuizServer
         }
       })
 
-    # User Logout
+    # Quiz Participant Quits
     elsif (msg.has_key?("quiz_participant_quit"))
       quiz_id = msg["quiz_participant_quit"]["quiz_id"].to_i
       @quiz_participants.each do |_, participants|
@@ -165,9 +165,10 @@ class QuizServer
     elsif (msg.has_key?("next_question"))
       client.answered = true
       quiz_id = msg["quiz_id"].to_i
+      waiting_time = msg["show_results_timer"] || 5
 
       if (all_participants_ready(quiz_id))
-        sleep 10 # seconds
+        sleep waiting_time # seconds
 
         send_all_quiz_participants quiz_id, JSON.generate({
           new_question_id: msg["next_question"].to_i,
@@ -179,9 +180,10 @@ class QuizServer
     elsif (msg.has_key?("finish_quiz"))
       client.answered = true
       quiz_id = msg["finish_quiz"].to_i
+      waiting_time = msg["show_results_timer"] || 5
 
       if (all_participants_ready(quiz_id))
-        sleep 10 # seconds
+        sleep waiting_time # seconds
 
         send_all_quiz_participants quiz_id, JSON.generate({
           finish_quiz: quiz_id,
@@ -204,10 +206,12 @@ class QuizServer
 
   def handle_client_answer(client, question_id, answer_id, correct_answer)
     client.answered = true
-    @question_answers[question_id] = {} if @question_answers[question_id].nil?
-    @question_answers[question_id][answer_id] = 0 if @question_answers[question_id][answer_id].nil?
-    @question_answers[question_id][answer_id] += 1
-    client.points += 1 if (correct_answer == true)
+    unless answer_id.nil?
+      @question_answers[question_id] = {} if @question_answers[question_id].nil?
+      @question_answers[question_id][answer_id] = 0 if @question_answers[question_id][answer_id].nil?
+      @question_answers[question_id][answer_id] += 1
+      client.points += 1 if (correct_answer == true)
+    end
   end
 
   def all_participants_ready(quiz_id)
