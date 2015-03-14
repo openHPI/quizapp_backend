@@ -1,6 +1,8 @@
 require 'em-websocket'
 require 'json'
 require 'pry'
+require 'csv'
+require 'time'
 $stdout.sync = true
 
 class Client
@@ -8,11 +10,13 @@ class Client
   attr_accessor :name
   attr_accessor :answered
   attr_accessor :points
+  attr_accessor :tta
 
   def initialize(websocket_arg)
     @websocket = websocket_arg
     @points = 0
     @answered = false
+    @tta = {} #time to answer for each question
   end
 end
 
@@ -146,12 +150,16 @@ class QuizServer
       send_all_quiz_participants quiz_id, JSON.generate({
         start_quiz: quiz_id
       })
+      @quiz_participants[quiz_id].each do |client|
+        client.tta[msg["first_question"].to_i] = Time.now.to_i
+      end
 
     # Question Answered
     elsif (msg.has_key?("question_answered"))
       question_id = msg["question_answered"].to_i
       handle_client_answer(client, question_id, msg["answer_id"], msg["correct_answer"])
       quiz_id = msg["quiz_id"].to_i
+      client.tta[question_id] = Time.now.to_i - client.tta[question_id]
 
       if (all_participants_ready(quiz_id))
         send_all_quiz_participants quiz_id, JSON.generate({
@@ -174,6 +182,9 @@ class QuizServer
           new_question_id: msg["next_question"].to_i,
           participants: build_participants_hash(quiz_id),
         })
+        @quiz_participants[quiz_id].each do |client|
+          client.tta[msg["next_question"].to_i] = Time.now.to_i
+        end
       end
 
     # Finish Quiz
@@ -190,10 +201,36 @@ class QuizServer
           winner_name: get_winner_name,
           participants: build_participants_hash(quiz_id),
         })
+        log_quiz_details(quiz_id)
         reset_quiz(quiz_id)
         @quiz_participants[quiz_id] = []
       end
     end
+  end
+
+  def log_quiz_details(quiz_id)
+    puts 'Writing logfile ...'
+    participants = build_participants_hash(quiz_id)
+    participants_count = @quiz_participants[quiz_id].length
+    avg_score = 0
+    avg_tta = 0
+    participants.each do |participant|
+      participant_tta = 0
+      participant[1][:tta].each do |question_id, tta| 
+        participant_tta += tta
+      end
+      participant_tta = participant_tta/participant[1][:tta].length
+      avg_tta += participant_tta
+      avg_score += participant[1][:points]
+    end
+    avg_score = avg_score/participants_count
+    avg_tta = avg_tta/participants_count
+
+    # Row layout: [time, quiz_id, #participants, average_score, average time to answer, particpants: [name: points, tta], ..]]
+    CSV.open("log.csv", "a") do |csv|
+      csv << [Time.now, quiz_id, participants_count, avg_score, avg_tta, participants]
+    end
+    puts 'Done'
   end
 
   def get_winner_name
@@ -226,7 +263,7 @@ class QuizServer
     participants = {}
     @quiz_participants[quiz_id].each do |client|
       client.answered = false
-      participants[client.name] = {points: client.points}
+      participants[client.name] = {points: client.points, tta: client.tta}
     end
     participants
   end
@@ -242,7 +279,9 @@ class QuizServer
   def reset_quiz(quiz_id)
     @question_answers = {}
     @quiz_participants[quiz_id].each do |client|
+      client.answered = false
       client.points = 0
+      client.tta = {}
     end
   end
 
