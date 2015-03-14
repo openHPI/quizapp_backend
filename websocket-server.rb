@@ -1,6 +1,7 @@
 require 'em-websocket'
 require 'json'
 require 'pry'
+$stdout.sync = true
 
 class Client
   attr_accessor :websocket
