@@ -1,5 +1,5 @@
 
-web: bundle exec ruby websocket-server.rb -p 15000
-web: bundle exec ruby websocket-server.rb -p 15001
-web: bundle exec ruby websocket-server.rb -p 15002
-web: bundle exec ruby websocket-server.rb -p 15003
+web: bundle exec ruby websocket-server.rb -p 81
+web: bundle exec ruby websocket-server.rb -p 82
+web: bundle exec ruby websocket-server.rb -p 83
+web: bundle exec ruby websocket-server.rb -p 84
