@@ -90,7 +90,7 @@ class QuizServer
     # New User
     if (msg.has_key?("new_user"))
       client.name = assign_name(msg['new_user'])
-      if (client.name == 'TV')
+      if (client.name.start_with?('TV'))
         @tv_clients[ws] = client
         ws.send JSON.generate({
           tv_client: client.name,
