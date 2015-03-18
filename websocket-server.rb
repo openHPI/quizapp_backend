@@ -206,7 +206,7 @@ class QuizServer
 
         send_all_quiz_participants quiz_id, JSON.generate({
           finish_quiz: quiz_id,
-          winner_name: get_winner_name,
+          winner_names: get_winner_names(quiz_id),
           participants: build_participants_hash(quiz_id),
         })
         log_quiz_details(quiz_id)
@@ -241,12 +241,16 @@ class QuizServer
     puts 'Done'
   end
 
-  def get_winner_name
+  def get_winner_names(quiz_id)
     winner = @clients.values[0]
-    @clients.values.each do |client|
+    @quiz_participants[quiz_id].each do |client|
       winner = client if client.points > winner.points
     end
-    winner.name
+    winners = []
+    @quiz_participants[quiz_id].each do |client|
+      winners << client.name if client.points == winner.points
+    end
+    winners
   end
 
   def handle_client_answer(client, question_id, answer_id, correct_answer)
