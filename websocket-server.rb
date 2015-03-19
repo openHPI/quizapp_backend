@@ -227,12 +227,14 @@ class QuizServer
       participant[1][:tta].each do |question_id, tta| 
         participant_tta += tta
       end
-      participant_tta = participant_tta/participant[1][:tta].length
+      participant_tta = participant_tta/participant[1][:tta].length if participant[1][:tta].length > 0
       avg_tta += participant_tta
       avg_score += participant[1][:points]
     end
-    avg_score = avg_score/participants_count
-    avg_tta = avg_tta/participants_count
+    if participants_count > 0
+      avg_score = avg_score/participants_count
+      avg_tta = avg_tta/participants_count
+    end
 
     # Row layout: [time, quiz_id, #participants, average_score, average time to answer, particpants: [name: points, tta], ..]]
     CSV.open("log.csv", "a") do |csv|
