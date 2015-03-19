@@ -323,4 +323,4 @@ class QuizServer
 end
 
 quizserver = QuizServer.new
-quizserver.start(host: "127.0.0.1", port: ARGV[1])
+quizserver.start(host: "0.0.0.0", port: ARGV[1])
